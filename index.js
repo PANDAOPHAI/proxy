@@ -1,29 +1,49 @@
-import express from "express";
-import fetch from "node-fetch";
+const express = require("express");
+const axios = require("axios");
 
 const app = express();
 
 app.get("/", async (req, res) => {
-  const url = req.query.url;
-
-  if (!url) return res.send("No URL provided");
-
   try {
-    const response = await fetch(url, {
+
+    const target =
+      "https://sportseera2.pages.dev/Drm/P3?id=kayo";
+
+    const response = await axios.get(target, {
       headers: {
-        "Referer": "https://animedekho.app/",
-        "User-Agent": "Mozilla/5.0"
+        "User-Agent":
+          "Mozilla/5.0"
       }
     });
 
-    const text = await response.text();
+    let html = response.data;
 
-    res.set("Access-Control-Allow-Origin", "*");
-    res.send(text);
+    // Fix relative paths
+    html = html.replace(
+      /src="\//g,
+      'src="https://sportseera2.pages.dev/'
+    );
+
+    html = html.replace(
+      /href="\//g,
+      'href="https://sportseera2.pages.dev/'
+    );
+
+    res.setHeader(
+      "Access-Control-Allow-Origin",
+      "*"
+    );
+
+    res.send(html);
 
   } catch (err) {
-    res.send("Error fetching");
+    res.send("Proxy Error");
+    console.log(err);
   }
 });
 
-app.listen(10000, () => console.log("Server running"));
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log("Server Running");
+});
